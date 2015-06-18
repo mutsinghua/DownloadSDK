@@ -5,9 +5,12 @@ package com.tcl.mie.downloader;
  */
 public interface IStatisticsLogger {
 
-    void onDownloadStartLogger(DownloadTask item);
+    void onStartLogger(DownloadTask item);
 
-    void onDownloadFinishLogger(DownloadTask item);
+    void onFinishLogger(DownloadTask item);
 
-    void onPause, onCancel, onContinue, onError
+    void onPauseLogger(DownloadTask item);
+    void onCancelLogger(DownloadTask item);
+    void onContinueLogger(DownloadTask item);
+    void onErrorLogger(DownloadTask item, DownloadException exception);
 }

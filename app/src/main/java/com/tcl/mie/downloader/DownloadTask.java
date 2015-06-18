@@ -1,10 +1,12 @@
 package com.tcl.mie.downloader;
 
+import java.util.Comparator;
+
 /**
  * 下载结构体
  * Created by Rex on 2015/6/3.
  */
-public class DownloadTask {
+public class DownloadTask implements Comparator<DownloadTask>{
 
     public byte SUPPORT_WIFI = 1;
     public byte SUPPORT_MOBILE =2;
@@ -30,6 +32,11 @@ public class DownloadTask {
     public String mLocalPath;
 
     /**
+     * 临时下载路径
+     */
+    public String mTempLocalPath;
+
+    /**
      * 下载完成时间
      */
     public long mDownloadFinishtime;
@@ -49,10 +56,24 @@ public class DownloadTask {
      */
     public long mTimeCosts;
 
+    public void setPriority(int mPriority) {
+        this.mPriority = mPriority;
+    }
+
     /**
      * 任务的优先级,理论上按照任务的加入来排序
      */
     public int mPriority;
 
 
+    public Downloader mDownloader;
+
+    @Override
+    public int compare(DownloadTask lhs, DownloadTask rhs) {
+        return lhs.mPriority - rhs.mPriority;
+    }
+
+    public void setDownloader(Downloader mDownloader) {
+        this.mDownloader = mDownloader;
+    }
 }

@@ -14,7 +14,7 @@ public interface IDownloadStrategy {
      * @param networkType 网络类型, WIFI, MOBILE
      * @return true 可以继续下载，false 不用下载
      */
-    boolean onNetworkChange(int networkType);
+    boolean onNetworkChange(int networkType, DownloadTask task);
 
-    boolean onRetry(int lastRetry);
+    boolean onRetry(DownloadTask task);
 }
