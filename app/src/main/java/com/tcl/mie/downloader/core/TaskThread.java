@@ -12,7 +12,6 @@ public class TaskThread implements Runnable {
 
     private BlockingQueue<DownloadTask> mWaitTasks;
     private INetworkDownloader mNetworkDownloader;
-    private HttpNetwork
 
     public TaskThread(BlockingQueue<DownloadTask> waitTasks, INetworkDownloader networkDownloader) {
         this.mWaitTasks = waitTasks;
@@ -33,9 +32,5 @@ public class TaskThread implements Runnable {
         }
     }
 
-    private long getTotalLenth(DownloadTask task) {
-        if( task.mFileTotalSize == 0) {
 
-        }
-    }
 }

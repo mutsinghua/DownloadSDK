@@ -1,6 +1,8 @@
 package com.tcl.mie.downloader.core;
 
+import com.tcl.mie.downloader.DownloadException;
 import com.tcl.mie.downloader.DownloadTask;
+import com.tcl.mie.downloader.IDownloadListener;
 
 import org.apache.http.Header;
 import org.apache.http.ProtocolVersion;
@@ -9,6 +11,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -27,13 +30,28 @@ public class HttpDownloader implements INetworkDownloader{
 
     private HttpNetwork mNetwork = new HttpNetwork();
 
+    //不要访问外面的成员变量
     @Override
     public void download(DownloadTask task) {
-       String url = task.mUrl;
+        String url = task.mUrl;
 
-       task.mLocalPath
+
+
+
 
     }
 
+    private void checkEnvironment(DownloadTask task) {
+        File path = new File(task.mLocalPath);
+        if( !path.exists()) {
+
+        }
+    }
+
+    private long getTotalLenth(DownloadTask task) {
+        if( task.mFileTotalSize == 0) {
+
+        }
+    }
 
 }

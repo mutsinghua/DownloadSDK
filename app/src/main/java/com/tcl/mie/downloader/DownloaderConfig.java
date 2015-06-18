@@ -6,18 +6,22 @@ import android.content.pm.PackageManager;
 import android.support.v4.text.TextUtilsCompat;
 import android.text.TextUtils;
 
+import com.tcl.mie.downloader.util.Tools;
+
 /**
  * 下载配置
  */
 public class DownloaderConfig  {
     public static final int MAX_RUNING_TASK_NUMBER = 2;
     public static final String UA = "MIE_DOWNLOADER_V" + Constant.VERSION;
+    public static final String DEFAULT_TEMP_EXT_NAME = ".mie";
     public String mDefaultDownloadPath;
     public int mRunningTask;
     public IDownloadStrategy mStrategy;
     public IStatisticsLogger mLogger;
     public String mUA;
     public String mProxy;
+    public String mDefaultTempSurfix;
     public DownloaderConfig(Builder builder) {
         mDefaultDownloadPath = builder.mDefaultDownloadPath;
         mRunningTask = builder.mRunningTask;
@@ -25,12 +29,14 @@ public class DownloaderConfig  {
         mLogger = builder.mLogger;
         mUA = builder.mUA;
         mProxy = builder.mProxy;
+        mDefaultTempSurfix = builder.mDefaultTempSurfix;
     }
 
     public static DownloaderConfig getDefaultConfig(Context context) {
         Builder builder = new Builder(context);
         return builder.build();
     }
+
 
 
     public static class Builder {
@@ -43,6 +49,7 @@ public class DownloaderConfig  {
         private IStatisticsLogger mLogger;
         private String mUA;
         private String mProxy;
+        public String mDefaultTempSurfix;
 
         public Builder(Context context) {
             mContext = context;
@@ -78,6 +85,11 @@ public class DownloaderConfig  {
             return this;
         }
 
+        public Builder setTempSuffix(String suffix) {
+            mDefaultTempSurfix = suffix;
+            return this;
+        }
+
         public DownloaderConfig build() {
             initEmptyField();
             return new DownloaderConfig(this);
@@ -85,12 +97,7 @@ public class DownloaderConfig  {
 
         private void initEmptyField() {
             if(TextUtils.isEmpty(mDefaultDownloadPath)) {
-                if ( mContext.checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_GRANTED) {
-                    mDefaultDownloadPath = mContext.getExternalFilesDir(null).getAbsolutePath();
-                }
-                else {
-                    mDefaultDownloadPath = mContext.getFilesDir().getAbsolutePath();
-                }
+                mDefaultDownloadPath = Tools.getCommonDownloadPath(mContext);
             }
 
             if( mRunningTask == 0) {
@@ -103,6 +110,10 @@ public class DownloaderConfig  {
 
             if ( mUA == null) {
                 mUA = UA + mContext.getPackageName();
+            }
+
+            if ( mDefaultTempSurfix == null) {
+                mDefaultTempSurfix = DEFAULT_TEMP_EXT_NAME;
             }
         }
     }

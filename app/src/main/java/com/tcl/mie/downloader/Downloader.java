@@ -3,6 +3,7 @@ package com.tcl.mie.downloader;
 import android.content.Context;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -24,10 +25,8 @@ public class Downloader  {
     /**手动任务队列,高优先级*/
     private final BlockingQueue<DownloadTask> mWaitingTasks = new PriorityBlockingQueue<DownloadTask>();
 
-    /**自动任务队列，低优先级*/
-    private final BlockingQueue<DownloadTask> mAutoTasks = new PriorityBlockingQueue<DownloadTask>();
 
-    private final Set<DownloadTask> mDownloadingTasks = new HashSet<>(2);
+    private final LinkedList<DownloadTask> mDownloadingTasks = new LinkedList<>();
 
     /**所有任务*/
     private final Set<DownloadTask> mCurrentTasks = new HashSet<DownloadTask>();
@@ -40,14 +39,13 @@ public class Downloader  {
         }
         mDownloaderConfig = config;
         mContext = context;
-        executorService = new ThreadPoolExecutor(3, 3,
+        executorService = new ThreadPoolExecutor(mDownloaderConfig.mRunningTask, mDownloaderConfig.mRunningTask,
                 10, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>());
 
     }
 
     public void init(Context context) {
-
         init(null, context);
     }
 
@@ -55,17 +53,47 @@ public class Downloader  {
      * 手动下载
      * @param item
      */
+    public void manualStartDownload(DownloadTask item) {
+
+        item.setPriority(DownloadTask.PRORITY_MANUAL);
+        startDownload(item);
+        //在开始之前，把自动下载的暂停掉
+        pauseAutoTask();
+    }
+
+    private void pauseAutoTask() {
+        if( mDownloadingTasks.size() < mDownloaderConfig.mRunningTask) {
+            //有空余线程
+           return;
+        }
+        else {
+            synchronized (mDownloadingTasks) {
+                for (int i = 0; i < mDownloadingTasks.size(); i++) {
+                    DownloadTask task = mDownloadingTasks.get(i);
+                    if( task.mPriority > DownloadTask.PRORITY_MANUAL) {
+                        //找到自动下载的，停掉。
+                        pauseDownload(task);
+                        //这句话加在这儿可能会有问题
+                        mDownloadingTasks.remove(task);
+                        //重新加入队列
+                        autoStartDownload(task);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 保持原来的下载方式下载
+     * @param item
+     */
     public void startDownload(DownloadTask item) {
         item.setDownloader(this);
         synchronized (mCurrentTasks) {
             mCurrentTasks.add(item);
         }
-        item.setPriority(PriorityUtils.getMaxPriority(mWaitingTasks)+1);
         mWaitingTasks.add(item);
-    }
-
-    private void initBlankField(DownloadTask item) {
-
     }
 
     /**
@@ -73,12 +101,8 @@ public class Downloader  {
      * @param item
      */
     public void autoStartDownload(DownloadTask item) {
-        item.setDownloader(this);
-        synchronized (mCurrentTasks) {
-            mCurrentTasks.add(item);
-        }
-        item.setPriority(PriorityUtils.getMaxPriority(mWaitingTasks)+1);
-        mWaitingTasks.add(item);
+        item.setPriority(DownloadTask.PRORITY_AUTO);
+        startDownload(item);
 
     }
 
