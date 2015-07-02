@@ -6,7 +6,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
 
+import org.apache.http.HttpResponse;
+
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by Rex on 2015/6/18.
@@ -50,4 +53,13 @@ public class Tools {
         }
     }
 
+    public static void safeClose(HttpResponse response) {
+        if( response != null) {
+            try {
+                response.getEntity().getContent().close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

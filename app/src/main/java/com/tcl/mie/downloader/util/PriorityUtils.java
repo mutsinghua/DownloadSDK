@@ -1,4 +1,6 @@
-package com.tcl.mie.downloader;
+package com.tcl.mie.downloader.util;
+
+import com.tcl.mie.downloader.DownloadTask;
 
 import java.util.Collection;
 
@@ -19,12 +21,12 @@ public class PriorityUtils {
         return min;
     }
 
-    public static int getMaxPriority(Collection<DownloadTask> data) {
-        int max = -1;
+    public static int getMaxSequence(Collection<DownloadTask> data) {
+        int max = 0;
         synchronized (data) {
             for(DownloadTask task:data) {
-                if( task.mPriority > max) {
-                    max = task.mPriority;
+                if( task.mSequence > max) {
+                    max = task.mSequence;
                 }
             }
         }

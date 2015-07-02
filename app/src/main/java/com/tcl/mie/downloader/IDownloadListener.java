@@ -5,16 +5,9 @@ package com.tcl.mie.downloader;
  */
 public interface IDownloadListener {
 
-    public void onDownloadWaiting(DownloadTask item);
-
-    public void onDownloadGoing(DownloadTask item);
-
-    public void onDownloadPause(DownloadTask item);
-
-    public void onDownloadFinish(DownloadTask item);
-
-    public void onDownloadError(DownloadTask item, DownloadException exception);
+    public void onDownloadStatusChange(DownloadTask item);
 
     public void onDownloadProgress(DownloadTask item, long downloadSize, long totalSize, int speed, int maxSpeed, long timeCost);
 
+    public boolean acceptItem(DownloadTask item);
 }

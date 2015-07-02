@@ -9,6 +9,8 @@ public interface IDownloadStrategy {
 
     int MOBILE = 2;
 
+
+
     /**
      * 当网络改变时，是否继续下载
      * @param networkType 网络类型, WIFI, MOBILE

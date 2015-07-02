@@ -37,7 +37,7 @@ public class HttpNetwork {
         this(null);
     }
 
-    public HttpResponse connect(String url, Map<String, String> additionalHeaders, String method, boolean allowOutPut) throws Exception{
+    public HttpResponse connect(String url, Map<String, String> additionalHeaders, String method, boolean allowOutPut) throws IOException{
 
         HashMap<String, String> map = new HashMap<String, String>();
         if( additionalHeaders != null) {
