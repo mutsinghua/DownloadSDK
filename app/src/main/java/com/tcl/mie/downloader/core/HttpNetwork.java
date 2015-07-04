@@ -107,7 +107,7 @@ public class HttpNetwork {
     private HttpURLConnection openConnection(URL url) throws IOException {
         HttpURLConnection connection = createConnection(url);
 
-        int timeoutMs = 30;
+        int timeoutMs = 30000;
         connection.setConnectTimeout(timeoutMs);
         connection.setReadTimeout(timeoutMs);
         connection.setUseCaches(false);

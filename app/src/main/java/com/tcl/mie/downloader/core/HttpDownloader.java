@@ -1,6 +1,7 @@
 package com.tcl.mie.downloader.core;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.tcl.mie.downloader.DownloadException;
 import com.tcl.mie.downloader.DownloadStatus;
@@ -98,7 +99,9 @@ public class HttpDownloader implements INetworkDownloader{
                 while( !task.isCancel && ( (nRead = input.read(buf)) >= 0)) {
                     output.write(buf, 0, nRead);
                     downloadSize += nRead;
-                    downloadFinish = (downloadSize == task.mFileDownloadedSize);
+//                    Log.d("DOWNLOADER", "nRead " + nRead );
+                    task.mFileDownloadedSize = downloadSize;
+                    downloadFinish = (downloadSize == task.mFileTotalSize);
                     doDownloading(task, downloadSize,downloadFinish);
                     if( downloadFinish) {
                         break;
@@ -107,7 +110,7 @@ public class HttpDownloader implements INetworkDownloader{
                 if( task.isCancel) {
                     throw new DownloadException(DownloadException.ECODE_PAUSE);
                 }
-
+                Log.d("DOWNLOADER", "downloadFinish " + downloadFinish );
                 if( downloadFinish) {
                     doDownloadFinish(task);
                 }
@@ -132,11 +135,18 @@ public class HttpDownloader implements INetworkDownloader{
             if( timeInterval > 1000 || force) {
                 long space = downloadSize - lastDownloadSize;
                 int currentSpeed = (int) ((space) / (timeInterval / 1000.0)); //每秒字节数
+                Log.d("DOWNLOADER", "notify " + downloadSize );
                 task.getDownloader().getEventCenter().onDownloadProgress(task, downloadSize, task.mFileTotalSize, currentSpeed, 0, 0);
+                lastTime = SystemClock.elapsedRealtime();
+                lastDownloadSize = downloadSize;
             }
+
         }
-        lastTime = SystemClock.elapsedRealtime();
-        lastDownloadSize = downloadSize;
+        else {
+            lastTime = SystemClock.elapsedRealtime();
+            lastDownloadSize = downloadSize;
+        }
+
     }
 
     private void doDownloadFinish(DownloadTask task) throws DownloadException{

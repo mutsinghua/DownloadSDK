@@ -119,6 +119,7 @@ public class Downloader  implements IDownloader{
             mCurrentTasks.add(item);
         }
         item.mStatus = DownloadStatus.WAITING;
+        item.setDefaultConfig(mDownloaderConfig,mContext);
         item.getDownloader().getEventCenter().onDownloadStatusChange(item);
         item.isCancel = false;
         mWaitingTasks.offer(item);

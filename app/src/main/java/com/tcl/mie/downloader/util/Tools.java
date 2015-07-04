@@ -34,8 +34,8 @@ public class Tools {
             hasPermission = true;
         }
 
-        boolean sdcard = Environment.isExternalStorageEmulated();
-        return sdcard && hasPermission;
+        boolean sdcard = context.getExternalFilesDir(null) != null;
+        return hasPermission && sdcard;
     }
 
     public static String getCommonDownloadPath(Context context) {

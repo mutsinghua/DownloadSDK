@@ -2,6 +2,7 @@ package com.tcl.mie.downdertest;
 
 import android.app.ListActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.BaseAdapter;
@@ -19,11 +20,13 @@ public class MainActivity extends ListActivity {
         @Override
         public void onDownloadStatusChange(DownloadTask item) {
             adapter.notifyDataSetChanged();
+            Log.d("DOWNLOADER", "STATUS CHANGE" + item);
         }
 
         @Override
         public void onDownloadProgress(DownloadTask item, long downloadSize, long totalSize, int speed, int maxSpeed, long timeCost) {
             adapter.notifyDataSetChanged();
+            Log.d("DOWNLOADER", "progress " + downloadSize + "  " + speed);
         }
 
         @Override
@@ -54,14 +57,24 @@ public class MainActivity extends ListActivity {
     public List<DownloadTask> getTestData() {
         ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
         DownloadTask dt = new DownloadTask();
-        dt.mUrl = "http://113.107.238.15/dd.myapp.com/16891/75FE2C34A71E326C07C13BEA362BB28E.apk?mkey=5594f37b12944e3f&f=a20e&fsname=com.tencent.mm_6.2.2.51rc9c7176_580.apk&asr=8eff&p=.apk";
+        dt.mUrl = "http://113.105.73.150/dd.myapp.com/16891/6C168C910722759D622DEB85E34B4E0A.apk?mkey=5597599a12944e3f&f=8e5d&fsname=com.mybook66_2.9.5_36.apk&asr=8eff&p=.apk";
 
         dt.mName = "wechat";
         downloadTasks.add(dt);
 
         dt = new DownloadTask();
         dt.mName = "qq";
-        dt.mUrl = "http://183.61.62.149/dd.myapp.com/16891/7FEF6275712B7E703AF1F5604D2ACCC1.apk?mkey=5594f0ae12944e3f&f=2b01&fsname=com.tencent.mobileqq_5.7.2_260.apk&asr=8eff&p=.apk";
+        dt.mUrl = "http://113.108.88.66/dd.myapp.com/16891/A79DF392E5978F4B40982EB3232A6252.apk?mkey=5597594112944e3f&f=d388&fsname=com.hunter.kuaikan_2.6.7_267001.apk&asr=8eff&p=.apk";
+        downloadTasks.add(dt);
+
+        dt = new DownloadTask();
+        dt.mName = "qq";
+        dt.mUrl = "http://113.108.88.67/dd.myapp.com/16891/DD99E868F1026CD04929862324B2A289.apk?mkey=5597592712944e3f&f=8d5d&fsname=com.bytetech1_3.6.0.myapp_56.apk&asr=8eff&p=.apk";
+        downloadTasks.add(dt);
+
+        dt = new DownloadTask();
+        dt.mName = "qq";
+        dt.mUrl = "http://113.105.73.150/dd.myapp.com/16891/77BA911D5D6190C16B67E2694B324960.apk?mkey=5597a6f312944e3f&f=d488&fsname=com.quanbennovel_1.1_2.apk&asr=8eff&p=.apk";
         downloadTasks.add(dt);
 
         return downloadTasks;

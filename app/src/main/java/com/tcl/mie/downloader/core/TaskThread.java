@@ -46,12 +46,15 @@ public class TaskThread extends Thread {
                         } else if (e.mErrorCode == e.ECODE_NETWORK) {
                             //如果是网络下载失败的,缓存到任务队列中，等有网络的时候再继续下载
                             task.getDownloader().retry(task);
-                        } else {
+                        }
+
                             task.mStatus = DownloadStatus.ERROR;
                             task.getDownloader().getEventCenter().onDownloadStatusChange(task);
-                        }
+
                     } catch (Throwable e) {
                         e.printStackTrace();
+                        task.mStatus = DownloadStatus.ERROR;
+                        task.getDownloader().getEventCenter().onDownloadStatusChange(task);
                     } finally {
                         task.getDownloader().onTaskStop(task);
                     }

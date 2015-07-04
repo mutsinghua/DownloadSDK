@@ -57,7 +57,7 @@ public class DownloadItemAdapter extends BaseAdapter {
         button.setTag(task);
         bar.setMax((int) task.mFileTotalSize);
         bar.setProgress((int) task.mFileDownloadedSize);
-        name.setText(task.mName);
+        name.setText((int) (task.mFileDownloadedSize * 100 / task.mFileTotalSize));
         switch (task.mStatus) {
             case NEW:
                 button.setText("Download");

@@ -2,6 +2,7 @@ package com.tcl.mie.downloader.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 /**
  * 文件操作工具类
@@ -16,7 +17,9 @@ public final class FileUtil {
      * @return 文件名
      */
     public static String getFileNameFromUrl(String url) {
-        return url.substring(url.lastIndexOf("/"));
+        URI uri = URI.create(url);
+        String path = uri.getPath();
+        return path.substring(path.lastIndexOf("/"));
     }
 
     /**
