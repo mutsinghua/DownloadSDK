@@ -39,10 +39,11 @@ public class TaskThread extends Thread {
                             if (task.mPriority == DownloadTask.PRORITY_LOW) {
                                 //自动下载的。重新加入
                                 task.getDownloader().startDownloadInLow(task);
-                            } else {
+                            }
                                 task.mStatus = DownloadStatus.STOP;
                                 task.getDownloader().getEventCenter().onDownloadStatusChange(task);
-                            }
+                                continue;
+
                         } else if (e.mErrorCode == e.ECODE_NETWORK) {
                             //如果是网络下载失败的,缓存到任务队列中，等有网络的时候再继续下载
                             task.getDownloader().retry(task);

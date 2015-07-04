@@ -1,21 +1,29 @@
 package com.tcl.mie.downloader;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 
 import com.tcl.mie.downloader.core.HttpDownloader;
 import com.tcl.mie.downloader.core.INetworkDownloader;
 import com.tcl.mie.downloader.core.TaskThread;
+import com.tcl.mie.downloader.util.DLog;
 import com.tcl.mie.downloader.util.PriorityUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 通用多优先级下载器
@@ -48,20 +56,28 @@ public class Downloader  implements IDownloader{
     private TaskThread[] mThreads;
 
     private INetworkDownloader mHttpDownloader;
+
     public void init(DownloaderConfig config, Context context) {
         if( config == null) {
             config = DownloaderConfig.getDefaultConfig(context);
         }
+
         mDownloaderConfig = config;
         mHttpDownloader = new HttpDownloader();
         mContext = context;
+        try {
+            mContext.registerReceiver(mNetworkMonitorReceiver, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         mThreads = new TaskThread[mDownloaderConfig.mRunningTask];
         for( int i=0;i< mThreads.length;i++) {
-            mThreads[i] = new TaskThread(mWaitingTasks,mHttpDownloader );
+            mThreads[i] = new TaskThread(mWaitingTasks,mHttpDownloader);
             mThreads[i].start();
         }
 
     }
+
 
     public void init(Context context) {
         init(null, context);
@@ -76,6 +92,9 @@ public class Downloader  implements IDownloader{
         if( isTaskExist(item)) return;
         item.mSequence = PriorityUtils.getMaxSequence(mWaitingTasks)+1;
         item.setPriority(DownloadTask.PRORITY_NORMAL);
+        synchronized (mRetryTasks) {
+            mRetryTasks.remove(item);
+        }
         addTask(item);
         //在开始之前，把低优先级下载的暂停掉
         pauseAutoTask();
@@ -133,8 +152,10 @@ public class Downloader  implements IDownloader{
 
         item.mSequence = PriorityUtils.getMaxSequence(mWaitingTasks)+1;
         item.setPriority(DownloadTask.PRORITY_LOW);
+        synchronized (mRetryTasks) {
+            mRetryTasks.remove(item);
+        }
         addTask(item);
-
     }
 
     public void pauseDownload(DownloadTask item){
@@ -185,7 +206,9 @@ public class Downloader  implements IDownloader{
 
 
     public void retry(DownloadTask task) {
-        mRetryTasks.add(task);
+        synchronized (mRetryTasks) {
+            mRetryTasks.add(task);
+        }
     }
 
     public void quit() {
@@ -193,5 +216,61 @@ public class Downloader  implements IDownloader{
             mThreads[i].mCancel = true;
         }
         stopAllDownload();
+        mContext.unregisterReceiver(mNetworkMonitorReceiver);
     }
+
+    private Handler handler = new Handler(Looper.getMainLooper()) {
+        public void handleMessage(android.os.Message msg) {
+
+            final Downloader downloader = (Downloader) msg.obj;
+
+            ConnectivityManager cm = (ConnectivityManager) downloader.mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null) {
+                NetworkInfo ni = cm.getActiveNetworkInfo();
+                if (ni != null) {
+                    final List<DownloadTask> downloadTasks = new ArrayList<>(downloader.mRetryTasks);
+                    synchronized (downloader.mRetryTasks) {
+                        Collections.sort(downloader.mRetryTasks);
+                        for (int i = 0; i < downloader.mRetryTasks.size(); i++) {
+                            final DownloadTask task = downloader.mRetryTasks.get(i);
+                            if (downloader.mDownloaderConfig.mStrategy.onNetworkChange(ConnectivityManager.TYPE_WIFI, task)) {
+                                downloader.addTask(task);
+                            }
+                            else {
+                                downloadTasks.remove(task);
+                            }
+                        }
+                        downloader.mRetryTasks.removeAll(downloadTasks);
+                    }
+                }
+            }
+        }
+    };
+
+    private BroadcastReceiver mNetworkMonitorReceiver = new BroadcastReceiver() {
+        private static final String TAG = "mNetworkMonitorReceiver";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if( mContext == null) {
+                mContext = context.getApplicationContext();
+            }
+            if (!intent.getAction().equalsIgnoreCase(
+                    ConnectivityManager.CONNECTIVITY_ACTION)) {
+                return;
+            }
+
+            DLog.v("网络变化");
+            // isBreak为false 有网
+            boolean isBreak = intent.getBooleanExtra(
+                    ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+            DLog.d("网络变化" + isBreak);
+            if (isBreak) {
+                return;
+            }
+            handler.removeMessages(0);
+            handler.sendMessageDelayed(Message.obtain(handler, 0, Downloader.this), 3000);
+        }
+
+    };
 }

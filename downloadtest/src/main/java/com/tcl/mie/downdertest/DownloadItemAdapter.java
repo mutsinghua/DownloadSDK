@@ -83,10 +83,40 @@ public class DownloadItemAdapter extends BaseAdapter {
                 button.setText("Restore");
                 break;
         }
+        if( position % 2 == 0)
         button.setOnClickListener(clickListener);
+        else
+            button.setOnClickListener(autoclickListener);
         return view;
     }
 
+    private View.OnClickListener autoclickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            DownloadTask task = (DownloadTask) v.getTag();
+            IDownloader downloader = DownloadManager.getInstance(mContext).getDownloader();
+            switch (task.mStatus) {
+                case NEW:
+                    downloader.startDownloadInLow(task);
+                    break;
+                case WAITING:
+                    downloader.pauseDownload(task);
+                    break;
+                case DOWNLOADING:
+                    downloader.pauseDownload(task);
+                    break;
+                case DOWNLOADED:
+                    downloader.startDownloadInLow(task);
+                    break;
+                case STOP:
+                    downloader.startDownloadInLow(task);
+                    break;
+                case ERROR:
+                    downloader.startDownloadInLow(task);
+                    break;
+            }
+        }
+    };
     private View.OnClickListener clickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -103,7 +133,7 @@ public class DownloadItemAdapter extends BaseAdapter {
                     downloader.pauseDownload(task);
                     break;
                 case DOWNLOADED:
-                    Toast.makeText(mContext, "to be installed", Toast.LENGTH_LONG).show();
+                    downloader.startDownload(task);
                     break;
                 case STOP:
                     downloader.startDownload(task);
