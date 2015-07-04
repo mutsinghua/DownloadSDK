@@ -58,10 +58,10 @@ public class DownloadItemAdapter extends BaseAdapter {
         bar.setMax((int) task.mFileTotalSize);
         bar.setProgress((int) task.mFileDownloadedSize);
         if( task.mFileTotalSize == 0) {
-            
+
         }
         else {
-            name.setText((int) (task.mFileDownloadedSize * 100 / task.mFileTotalSize));
+            name.setText(String.valueOf( (task.mFileDownloadedSize * 100 / task.mFileTotalSize)));
         }
         switch (task.mStatus) {
             case NEW:
