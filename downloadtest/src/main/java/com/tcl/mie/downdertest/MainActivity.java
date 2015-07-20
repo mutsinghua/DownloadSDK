@@ -69,7 +69,7 @@ public class MainActivity extends ListActivity {
 
         dt = new DownloadTask();
         dt.mName = "qq";
-        dt.mUrl = "http://113.108.88.67/dd.myapp.com/16891/DD99E868F1026CD04929862324B2A289.apk?mkey=5597592712944e3f&f=8d5d&fsname=com.bytetech1_3.6.0.myapp_56.apk&asr=8eff&p=.apk";
+        dt.mUrl = "http://113.105.73.149/dd.myapp.com/16891/F37F1B5AC7BDFB9AB7E5748ED61EBFAE.apk?mkey=5599d80412944e3f&f=a20e&fsname=com.qiyi.video_6.4_80640.apk&asr=8eff&p=.apk";
         downloadTasks.add(dt);
 
         dt = new DownloadTask();

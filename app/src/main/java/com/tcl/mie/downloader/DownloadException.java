@@ -27,4 +27,9 @@ public class DownloadException extends Exception{
         super(throwable);
         this.mErrorCode = mErrorCode;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + "ErrorCode " + mErrorCode;
+    }
 }

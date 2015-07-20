@@ -112,6 +112,7 @@ public class HttpDownloader implements INetworkDownloader{
                 }
                 Log.d("DOWNLOADER", "downloadFinish " + downloadFinish );
                 if( downloadFinish) {
+                    task.mDownloadFinishtime = System.currentTimeMillis();
                     doDownloadFinish(task);
                 }
             }

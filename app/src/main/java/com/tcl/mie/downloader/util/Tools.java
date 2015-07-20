@@ -58,7 +58,7 @@ public class Tools {
             try {
                 response.getEntity().getContent().close();
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
     }

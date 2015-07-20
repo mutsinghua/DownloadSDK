@@ -16,6 +16,8 @@ import com.tcl.mie.downloader.core.TaskThread;
 import com.tcl.mie.downloader.util.DLog;
 import com.tcl.mie.downloader.util.PriorityUtils;
 
+import org.aisen.orm.SqliteUtility;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,6 +33,7 @@ import java.util.concurrent.PriorityBlockingQueue;
  */
 public class Downloader  implements IDownloader{
 
+    public static final String TAG = "DOWNLOADER";
     public DownloaderConfig getDownloaderConfig() {
         return mDownloaderConfig;
     }
@@ -49,7 +52,13 @@ public class Downloader  implements IDownloader{
     /**所有任务*/
     private final Set<DownloadTask> mCurrentTasks = new HashSet<DownloadTask>();
 
+    /**
+     * 断点重试的任务
+     */
     private final LinkedList<DownloadTask> mRetryTasks = new LinkedList<>();
+
+
+    private ArrayList<DownloadTask> mResumeLowTasks = new ArrayList<>();
 
     private DownloadEventCenter mEventCenter = new DownloadEventCenter();
 
@@ -75,7 +84,6 @@ public class Downloader  implements IDownloader{
             mThreads[i] = new TaskThread(mWaitingTasks,mHttpDownloader);
             mThreads[i].start();
         }
-
     }
 
 
@@ -115,7 +123,9 @@ public class Downloader  implements IDownloader{
                         //这句话加在这儿可能会有问题
                         onTaskStop(task);
                         //重新加入队列
-                        startDownloadInLow(task);
+                        synchronized (mResumeLowTasks) {
+                            mResumeLowTasks.add(task);
+                        }
                         break;
                     }
                 }
@@ -125,6 +135,17 @@ public class Downloader  implements IDownloader{
 
     private boolean isTaskExist(DownloadTask item) {
         return mCurrentTasks.contains(item);
+    }
+
+    public void resumeLowTasks() {
+        if( mDownloadingTasks.size() == 0) {
+            synchronized (mResumeLowTasks) {
+                for (int i = 0; i < mResumeLowTasks.size(); i++) {
+                    startDownloadInLow(mResumeLowTasks.get(i));
+                }
+                mResumeLowTasks.clear();
+            }
+        }
     }
 
     /**
@@ -172,6 +193,10 @@ public class Downloader  implements IDownloader{
         synchronized (mCurrentTasks) {
             mCurrentTasks.clear();
         }
+        synchronized (mResumeLowTasks) {
+            mResumeLowTasks.clear();
+        }
+
         mWaitingTasks.clear();
         ArrayList<DownloadTask> runningTask = new ArrayList<>(mDownloadingTasks);
         for( int i=0;i<runningTask.size();i++) {
@@ -188,6 +213,9 @@ public class Downloader  implements IDownloader{
             mCurrentTasks.remove(item);
         }
         mWaitingTasks.remove(item);
+
+        //需要时，恢复自动下载
+        resumeLowTasks();
     }
 
     public void addDownloadListener(IDownloadListener downloadListener) {

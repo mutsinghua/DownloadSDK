@@ -10,6 +10,7 @@ import com.tcl.mie.downloader.util.FileUtil;
 import com.tcl.mie.downloader.util.Tools;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Comparator;
 
@@ -17,7 +18,9 @@ import java.util.Comparator;
  * 下载结构体
  * Created by Rex on 2015/6/3.
  */
-public class DownloadTask implements Comparable<DownloadTask>{
+public class DownloadTask implements Comparable<DownloadTask>, Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     public static final String TAG = "DownloadTask";
 
