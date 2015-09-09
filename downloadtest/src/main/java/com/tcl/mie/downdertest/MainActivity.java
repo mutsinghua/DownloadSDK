@@ -40,8 +40,11 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        adapter = new DownloadItemAdapter(this, getTestData());
+        List<DownloadTask> task = DownloadManager.getInstance(this).getDownloader().getAllTask();
+        if( task.size() == 0) {
+            task = getTestData();
+        }
+        adapter = new DownloadItemAdapter(this, task);
         setListAdapter(adapter);
 
         DownloadManager.getInstance(this).getDownloader().addDownloadListener(listener);
@@ -50,6 +53,7 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onDestroy() {
+
         DownloadManager.getInstance(this).getDownloader().removeDownloadListener(listener);
         super.onDestroy();
     }
@@ -73,8 +77,8 @@ public class MainActivity extends ListActivity {
         downloadTasks.add(dt);
 
         dt = new DownloadTask();
-        dt.mName = "qq";
-        dt.mUrl = "http://113.105.73.150/dd.myapp.com/16891/77BA911D5D6190C16B67E2694B324960.apk?mkey=5597a6f312944e3f&f=d488&fsname=com.quanbennovel_1.1_2.apk&asr=8eff&p=.apk";
+        dt.mName = "https";
+        dt.mUrl = "https://services.gradle.org/distributions/gradle-2.4-all.zip";
         downloadTasks.add(dt);
 
         return downloadTasks;

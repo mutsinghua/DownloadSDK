@@ -3,7 +3,6 @@ package com.tcl.mie.downloader;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.v4.text.TextUtilsCompat;
 import android.text.TextUtils;
 
 import com.tcl.mie.downloader.util.Tools;

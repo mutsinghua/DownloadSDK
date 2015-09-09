@@ -17,9 +17,14 @@ public final class FileUtil {
      * @return 文件名
      */
     public static String getFileNameFromUrl(String url) {
-        URI uri = URI.create(url);
-        String path = uri.getPath();
-        return path.substring(path.lastIndexOf("/"));
+        try {
+            URI uri = URI.create(url);
+            String path = uri.getPath();
+            return path.substring(path.lastIndexOf("/"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Integer.toString(url.hashCode());
     }
 
     /**

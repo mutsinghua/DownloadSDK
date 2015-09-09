@@ -17,6 +17,7 @@ import com.tcl.mie.downloader.util.DLog;
 import com.tcl.mie.downloader.util.PriorityUtils;
 
 import org.aisen.orm.SqliteUtility;
+import org.aisen.orm.SqliteUtilityBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +61,9 @@ public class Downloader  implements IDownloader{
 
     private ArrayList<DownloadTask> mResumeLowTasks = new ArrayList<>();
 
+
+    private List<DownloadTask> mAllTasks = null;
+
     private DownloadEventCenter mEventCenter = new DownloadEventCenter();
 
     private TaskThread[] mThreads;
@@ -70,6 +74,7 @@ public class Downloader  implements IDownloader{
         if( config == null) {
             config = DownloaderConfig.getDefaultConfig(context);
         }
+        new SqliteUtilityBuilder().build(context);
 
         mDownloaderConfig = config;
         mHttpDownloader = new HttpDownloader();
@@ -84,8 +89,25 @@ public class Downloader  implements IDownloader{
             mThreads[i] = new TaskThread(mWaitingTasks,mHttpDownloader);
             mThreads[i].start();
         }
+
+        loadData();
     }
 
+
+    private void loadData() {
+        mAllTasks =  SqliteUtility.getInstance().select(null, DownloadTask.class);
+        for(DownloadTask task : mAllTasks) {
+            if( getDownloaderConfig().mStrategy.canAutoStart(task) ) {
+                startDownload(task);
+            }
+        }
+    }
+
+
+    @Override
+    public List<DownloadTask> getAllTask() {
+        return mAllTasks;
+    }
 
     public void init(Context context) {
         init(null, context);
@@ -104,6 +126,7 @@ public class Downloader  implements IDownloader{
             mRetryTasks.remove(item);
         }
         addTask(item);
+
         //在开始之前，把低优先级下载的暂停掉
         pauseAutoTask();
     }
@@ -162,6 +185,7 @@ public class Downloader  implements IDownloader{
         item.setDefaultConfig(mDownloaderConfig,mContext);
         item.getDownloader().getEventCenter().onDownloadStatusChange(item);
         item.isCancel = false;
+        SqliteUtility.getInstance().insertOrReplace(null, item);
         mWaitingTasks.offer(item);
     }
 
@@ -181,11 +205,13 @@ public class Downloader  implements IDownloader{
 
     public void pauseDownload(DownloadTask item){
         item.isCancel = true;
+        SqliteUtility.getInstance().update(null,item);
     }
 
     public void deleteDownload(DownloadTask item){
         item.isCancel = true;
         item.resetTask();
+        SqliteUtility.getInstance().deleteById(null, DownloadTask.class, item.mKey);
     }
 
     @Override
@@ -202,6 +228,7 @@ public class Downloader  implements IDownloader{
         for( int i=0;i<runningTask.size();i++) {
             runningTask.get(i).isCancel = true;
         }
+        SqliteUtility.getInstance().update(null, runningTask);
     }
 
     public void onTaskGoing(DownloadTask task) {
@@ -214,6 +241,7 @@ public class Downloader  implements IDownloader{
         }
         mWaitingTasks.remove(item);
 
+        SqliteUtility.getInstance().update(null, item);
         //需要时，恢复自动下载
         resumeLowTasks();
     }

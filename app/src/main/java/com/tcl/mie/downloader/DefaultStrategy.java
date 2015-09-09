@@ -1,5 +1,7 @@
 package com.tcl.mie.downloader;
 
+import android.net.ConnectivityManager;
+
 import java.util.ArrayList;
 
 /**
@@ -10,7 +12,7 @@ public class DefaultStrategy implements IDownloadStrategy {
 
     @Override
     public boolean onNetworkChange(int networkType, DownloadTask task) {
-        if(networkType == WIFI) {
+        if(networkType == ConnectivityManager.TYPE_WIFI) {
             return true;
         }
 
@@ -22,6 +24,11 @@ public class DefaultStrategy implements IDownloadStrategy {
         if (!task.isCancel) {
             return true;
         }
+        return false;
+    }
+
+    @Override
+    public boolean canAutoStart(DownloadTask task) {
         return false;
     }
 }

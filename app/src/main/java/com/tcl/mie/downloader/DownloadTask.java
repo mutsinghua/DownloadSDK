@@ -9,6 +9,8 @@ import com.tcl.mie.downloader.util.DLog;
 import com.tcl.mie.downloader.util.FileUtil;
 import com.tcl.mie.downloader.util.Tools;
 
+import org.aisen.orm.annotation.PrimaryKey;
+
 import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
@@ -44,6 +46,7 @@ public class DownloadTask implements Comparable<DownloadTask>, Serializable{
     /**
      * 下载项索引关键字，对于apk，可以是包名
      */
+    @PrimaryKey(column = "mKey")
     public String mKey;
 
     /**
@@ -229,7 +232,7 @@ public class DownloadTask implements Comparable<DownloadTask>, Serializable{
     public boolean checkUrl() {
         try {
             URI uri = URI.create(mUrl);
-            if( "http".equalsIgnoreCase(uri.getScheme())) {
+            if( (uri.getScheme().startsWith("http"))) {
                 return true;
             }
             else{

@@ -2,6 +2,8 @@ package com.tcl.mie.downloader;
 
 import android.content.Context;
 
+import java.util.List;
+
 /**
  * Created by Rex on 2015/6/30.
  */
@@ -16,4 +18,6 @@ public interface IDownloader {
     void addDownloadListener(IDownloadListener downloadListener);
     void removeDownloadListener(IDownloadListener downloadListener);
     void quit();
+    List<DownloadTask> getAllTask();
+
 }

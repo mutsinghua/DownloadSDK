@@ -3,6 +3,8 @@ package com.tcl.mie.downloader.core;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Response;
 import com.tcl.mie.downloader.DownloadException;
 import com.tcl.mie.downloader.DownloadStatus;
 import com.tcl.mie.downloader.DownloadTask;
@@ -18,8 +20,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Created by difei.zou on 2015/6/13.
@@ -28,7 +41,12 @@ public class HttpDownloader implements INetworkDownloader{
 
 
     private static final String TAG = "HttpDownloader";
-    private HttpNetwork mNetwork = new HttpNetwork();
+
+    public HttpDownloader(){
+
+
+    }
+
 
     //不要访问外面的成员变量
     @Override
@@ -71,30 +89,28 @@ public class HttpDownloader implements INetworkDownloader{
     }
 
     private void downloadContent(DownloadTask task, long localSize) throws DownloadException{
-        HttpResponse response = null;
+        Response response = null;
+        Call call = null;
         long downloadSize = localSize;
         try {
             Map<String, String> headerParam = new HashMap<>(2);
             headerParam.put("RANGE", "bytes=" + localSize + "-");
             headerParam.put("User-Agent", task.getDownloader().getDownloaderConfig().mUA);
-            response = mNetwork.connect(task.mUrl, headerParam, "GET", true);
-            int resCode = response.getStatusLine().getStatusCode();
-            DLog.d("http get code = %s" ,response.getStatusLine().getStatusCode());
+            call = HttpNetwork.connect(task.mUrl, headerParam, "GET");
+            response = call.execute();
+            int resCode = response.code();
+            DLog.d("http get code = %s" ,response.code());
             if( resCode == HttpURLConnection.HTTP_OK || resCode == HttpURLConnection.HTTP_PARTIAL) {
 
-                Header header = response.getEntity().getContentType();
-                if( header == null) {
-                    DLog.d("content type header=null");
-                    throw new DownloadException(DownloadException.ECODE_UNKNOWN);
-                }
-                String contentType = header.getValue();
+
+                String contentType = response.body().contentType().type();
                 if( !task.checkContentType(contentType)) {
                     throw new DownloadException(DownloadException.ECODE_CONTENT_TYPE_NOT_ACCEPTABLE);
                 }
                 byte[] buf = new byte[1024 * 4];
                 int nRead;
                 boolean downloadFinish = false;
-                InputStream input = response.getEntity().getContent();
+                InputStream input = response.body().byteStream();
                 OutputStream output = new FileOutputStream(task.getTempFilePath(), true);
                 while( !task.isCancel && ( (nRead = input.read(buf)) >= 0)) {
                     output.write(buf, 0, nRead);
@@ -123,7 +139,7 @@ public class HttpDownloader implements INetworkDownloader{
         }
         finally {
             DLog.d("close response");
-            Tools.safeClose(response);
+            call.cancel();
         }
     }
 
@@ -170,28 +186,25 @@ public class HttpDownloader implements INetworkDownloader{
      * @throws DownloadException
      */
     private long getNetworkFileLenth(DownloadTask task) throws DownloadException{
-
-            HttpResponse response = null;
+            Call call = null;
+            Response response = null;
             try {
                 Map<String, String> headerParam = new HashMap<>(2);
                 headerParam.put("User-Agent", task.getDownloader().getDownloaderConfig().mUA);
-                response = mNetwork.connect(task.mUrl,headerParam, "HEAD", false);
-            DLog.d("http head code = %s" ,response.getStatusLine().getStatusCode());
-            if( response.getStatusLine().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                call = HttpNetwork.connect(task.mUrl,headerParam, "HEAD");
+                response = call.execute();
+            DLog.d("http head code = %s" ,response.code());
+            if( response.code() != HttpURLConnection.HTTP_OK) {
                 throw new DownloadException(DownloadException.ECODE_SERVER);
             }
 
-            Header header = response.getEntity().getContentType();
-            if( header == null) {
-                DLog.d("contenttype header=null");
-                throw new DownloadException(DownloadException.ECODE_UNKNOWN);
-            }
-            String contentType = header.getValue();
+
+            String contentType = response.body().contentType().type();
             if( !task.checkContentType(contentType)) {
                 throw new DownloadException(DownloadException.ECODE_CONTENT_TYPE_NOT_ACCEPTABLE);
             }
 
-            long length = response.getEntity().getContentLength();
+            long length = response.body().contentLength();
             DLog.d("content length = %d", length);
 
             return length;
@@ -201,8 +214,9 @@ public class HttpDownloader implements INetworkDownloader{
             throw new DownloadException(e, DownloadException.ECODE_NETWORK);
         }
         finally {
-            Tools.safeClose(response);
+            call.cancel();
         }
     }
+
 
 }

@@ -1,6 +1,8 @@
 package com.tcl.mie.downdertest;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import com.tcl.mie.downloader.DownloadTask;
 import com.tcl.mie.downloader.IDownloader;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -106,17 +109,28 @@ public class DownloadItemAdapter extends BaseAdapter {
                     downloader.pauseDownload(task);
                     break;
                 case DOWNLOADED:
-                    downloader.startDownloadInLow(task);
+                    downloader.startDownload(task);
                     break;
                 case STOP:
-                    downloader.startDownloadInLow(task);
+                    downloader.startDownload(task);
                     break;
                 case ERROR:
-                    downloader.startDownloadInLow(task);
+                    downloader.startDownload(task);
                     break;
             }
         }
     };
+
+    /**
+     * 获取安装应用的Intent
+     */
+    public static Intent getInstallIntent(Context mContext, File file) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+        return intent;
+    }
+
     private View.OnClickListener clickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -133,7 +147,7 @@ public class DownloadItemAdapter extends BaseAdapter {
                     downloader.pauseDownload(task);
                     break;
                 case DOWNLOADED:
-                    downloader.startDownload(task);
+                    mContext.startActivity(getInstallIntent(mContext, new File(task.getFinalFilePath())));
                     break;
                 case STOP:
                     downloader.startDownload(task);

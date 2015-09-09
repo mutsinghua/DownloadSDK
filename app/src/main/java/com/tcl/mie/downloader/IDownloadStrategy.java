@@ -5,18 +5,14 @@ package com.tcl.mie.downloader;
  */
 public interface IDownloadStrategy {
 
-    int WIFI = 1;
-
-    int MOBILE = 2;
-
-
-
     /**
      * 当网络改变时，是否继续下载
-     * @param networkType 网络类型, WIFI, MOBILE
+     * @param networkType 网络类型, @see ConnectiveManager
      * @return true 可以继续下载，false 不用下载
      */
     boolean onNetworkChange(int networkType, DownloadTask task);
 
     boolean onRetry(DownloadTask task);
+
+    boolean canAutoStart(DownloadTask task);
 }
