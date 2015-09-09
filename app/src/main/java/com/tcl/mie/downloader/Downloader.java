@@ -70,7 +70,7 @@ public class Downloader  implements IDownloader{
 
     private INetworkDownloader mHttpDownloader;
 
-    public void init(DownloaderConfig config, Context context) {
+    public void init(DownloaderConfig config, Context context, ILoadListener loadListener) {
         if( config == null) {
             config = DownloaderConfig.getDefaultConfig(context);
         }
@@ -90,17 +90,21 @@ public class Downloader  implements IDownloader{
             mThreads[i].start();
         }
 
-        loadData();
+        loadData(loadListener);
     }
 
 
-    private void loadData() {
-        mAllTasks =  SqliteUtility.getInstance().select(null, DownloadTask.class);
-        for(DownloadTask task : mAllTasks) {
+    private void loadData(ILoadListener loadListener) {
+        List<DownloadTask> allTask =  SqliteUtility.getInstance().select(null, DownloadTask.class);
+        if (loadListener != null) {
+            allTask = loadListener.onLoad(allTask);
+        }
+        for(DownloadTask task : allTask) {
             if( getDownloaderConfig().mStrategy.canAutoStart(task) ) {
                 startDownload(task);
             }
         }
+        mAllTasks = allTask;
     }
 
 
@@ -110,7 +114,7 @@ public class Downloader  implements IDownloader{
     }
 
     public void init(Context context) {
-        init(null, context);
+        init(null, context,null);
     }
 
     /**

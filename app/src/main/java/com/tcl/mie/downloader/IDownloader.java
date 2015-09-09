@@ -9,7 +9,7 @@ import java.util.List;
  */
 public interface IDownloader {
     void init(Context context);
-    void init(DownloaderConfig config, Context context);
+    void init(DownloaderConfig config, Context context, ILoadListener loadListener);
     void startDownload(DownloadTask item);
     void startDownloadInLow(DownloadTask item);
     void pauseDownload(DownloadTask item);
